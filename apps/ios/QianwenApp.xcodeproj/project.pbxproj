@@ -1,0 +1,204 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {};
+	objectVersion = 56;
+	objects = {
+		1D0010000000000000000001 = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+			};
+			buildConfigurationList = 1D0010000000000000000002;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = zh-Hans;
+			hasScannedForEncodings = 0;
+			knownRegions = (zh-Hans, en, Base);
+			mainGroup = 1D0010000000000000000003;
+			productRefGroup = 1D0010000000000000000004;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (1D0010000000000000000005, 1D0010000000000000000034);
+		};
+		1D0010000000000000000002 = {
+			isa = XCConfigurationList;
+			buildConfigurations = (1D0010000000000000000006, 1D0010000000000000000007);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1D0010000000000000000003 = {
+			isa = PBXGroup;
+			children = (1D0010000000000000000008, 1D0010000000000000000031, 1D0010000000000000000004);
+			sourceTree = "<group>";
+		};
+		1D0010000000000000000004 = {
+			isa = PBXGroup;
+			children = (1D0010000000000000000009, 1D0010000000000000000033);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1D0010000000000000000031 = {
+			isa = PBXGroup;
+			children = (1D0010000000000000000032);
+			path = QianwenAppTests;
+			sourceTree = "<group>";
+		};
+		1D0010000000000000000005 = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1D0010000000000000000010;
+			buildPhases = (1D0010000000000000000011, 1D0010000000000000000012, 1D0010000000000000000013);
+			buildRules = ();
+			dependencies = ();
+			name = QianwenApp;
+			productName = QianwenApp;
+			productReference = 1D0010000000000000000009;
+			productType = "com.apple.product-type.application";
+		};
+		1D0010000000000000000006 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		1D0010000000000000000007 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		1D0010000000000000000008 = {
+			isa = PBXGroup;
+			children = (1D0010000000000000000014, 1D0010000000000000000015, 1D0010000000000000000016, 1D0010000000000000000017, 1D0010000000000000000018, 1D0010000000000000000019, 1D0010000000000000000020, 1D0010000000000000000021);
+			path = QianwenApp;
+			sourceTree = "<group>";
+		};
+		1D0010000000000000000009 = {
+			isa = PBXFileReference;
+			explicitFileType = wrapper.application;
+			includeInIndex = 0;
+			path = QianwenApp.app;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1D0010000000000000000032 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = ChatSseParserTests.swift;
+			sourceTree = "<group>";
+		};
+		1D0010000000000000000033 = {
+			isa = PBXFileReference;
+			explicitFileType = wrapper.cfbundle;
+			includeInIndex = 0;
+			path = QianwenAppTests.xctest;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1D0010000000000000000010 = {
+			isa = XCConfigurationList;
+			buildConfigurations = (1D0010000000000000000022, 1D0010000000000000000023);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1D0010000000000000000034 = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1D0010000000000000000038;
+			buildPhases = (1D0010000000000000000035, 1D0010000000000000000036, 1D0010000000000000000037);
+			buildRules = ();
+			dependencies = (1D0010000000000000000044);
+			name = QianwenAppTests;
+			productName = QianwenAppTests;
+			productReference = 1D0010000000000000000033;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		1D0010000000000000000035 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (1D0010000000000000000041); runOnlyForDeploymentPostprocessing = 0; };
+		1D0010000000000000000036 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		1D0010000000000000000037 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		1D0010000000000000000038 = {
+			isa = XCConfigurationList;
+			buildConfigurations = (1D0010000000000000000039, 1D0010000000000000000040);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1D0010000000000000000039 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.qianwen.demo.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/QianwenApp.app/QianwenApp";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		1D0010000000000000000040 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.qianwen.demo.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/QianwenApp.app/QianwenApp";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		1D0010000000000000000042 = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1D0010000000000000000001;
+			proxyType = 1;
+			remoteGlobalIDString = 1D0010000000000000000005;
+			remoteInfo = QianwenApp;
+		};
+		1D0010000000000000000044 = {
+			isa = PBXTargetDependency;
+			target = 1D0010000000000000000005;
+			targetProxy = 1D0010000000000000000042;
+		};
+		1D0010000000000000000011 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (1D0010000000000000000024, 1D0010000000000000000025, 1D0010000000000000000026, 1D0010000000000000000027, 1D0010000000000000000028, 1D0010000000000000000029, 1D0010000000000000000030); runOnlyForDeploymentPostprocessing = 0; };
+		1D0010000000000000000012 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		1D0010000000000000000013 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		1D0010000000000000000014 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QianwenApp.swift; sourceTree = "<group>"; };
+		1D0010000000000000000015 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		1D0010000000000000000016 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QianwenApiClient.swift; sourceTree = "<group>"; };
+		1D0010000000000000000017 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QianwenStore.swift; sourceTree = "<group>"; };
+		1D0010000000000000000018 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationListView.swift; sourceTree = "<group>"; };
+		1D0010000000000000000019 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		1D0010000000000000000020 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusView.swift; sourceTree = "<group>"; };
+		1D0010000000000000000021 = { isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1D0010000000000000000022 = { isa = XCBuildConfiguration; buildSettings = { ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; CODE_SIGN_STYLE = Automatic; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = QianwenApp/Info.plist; PRODUCT_BUNDLE_IDENTIFIER = com.qianwen.demo; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_VERSION = 5.9; }; name = Debug; };
+		1D0010000000000000000023 = { isa = XCBuildConfiguration; buildSettings = { ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; CODE_SIGN_STYLE = Automatic; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = QianwenApp/Info.plist; PRODUCT_BUNDLE_IDENTIFIER = com.qianwen.demo; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_VERSION = 5.9; }; name = Release; };
+		1D0010000000000000000024 = { isa = PBXBuildFile; fileRef = 1D0010000000000000000014; };
+		1D0010000000000000000025 = { isa = PBXBuildFile; fileRef = 1D0010000000000000000015; };
+		1D0010000000000000000026 = { isa = PBXBuildFile; fileRef = 1D0010000000000000000016; };
+		1D0010000000000000000027 = { isa = PBXBuildFile; fileRef = 1D0010000000000000000017; };
+		1D0010000000000000000028 = { isa = PBXBuildFile; fileRef = 1D0010000000000000000018; };
+		1D0010000000000000000029 = { isa = PBXBuildFile; fileRef = 1D0010000000000000000019; };
+		1D0010000000000000000030 = { isa = PBXBuildFile; fileRef = 1D0010000000000000000020; };
+		1D0010000000000000000041 = { isa = PBXBuildFile; fileRef = 1D0010000000000000000032; };
+	};
+	rootObject = 1D0010000000000000000001;
+}
