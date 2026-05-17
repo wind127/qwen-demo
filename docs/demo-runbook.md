@@ -1,6 +1,7 @@
 # 多端启动与演示 Runbook
 
 日期：2026-05-15  
+最近更新：2026-05-17
 执行者：Codex
 
 本文档是面试现场的统一执行手册，覆盖 Server、Web、Android、iOS 四端启动、演示流程、验收命令和常见排障。Android 是主展示端，Web 是完整备用闭环，iOS 展示原生工程结构与同一 API 合同接入能力。
@@ -160,7 +161,7 @@ pnpm --filter @qianwen/web build
 
 Android 是二面主展示端。详细 Android 专项说明见 `docs/android-demo-guide.md`，本节保留现场执行主路径。
 
-### 启动步骤：Android Studio
+### 启动步骤：命令行主路径
 
 1. 先启动 Server。
 
@@ -168,24 +169,26 @@ Android 是二面主展示端。详细 Android 专项说明见 `docs/android-dem
 pnpm dev:server
 ```
 
-2. Android Studio 打开工程目录。
+2. 一键启动 Android 端。
+
+```powershell
+pnpm dev:android
+```
+
+`pnpm dev:android` 会自动读取 `apps/android/local.properties` 的 SDK 路径，启动或复用 AVD，处理卡住的 emulator，构建 debug APK，安装到设备并打开 `com.qianwen.demo/.MainActivity`。如果 Server 没有启动，命令仍会打开 App，并在终端提示先另开窗口执行 `pnpm dev:server`。
+
+### 启动步骤：Android Studio 备选
+
+1. Android Studio 打开工程目录。
 
 ```text
 apps/android
 ```
 
-3. 等待 Gradle 同步完成。
-4. 选择 `app` 配置。
-5. 启动 Android Emulator，推荐 Pixel_7 或 API 35/37 模拟器。
-6. 点击 Run。
-
-### 启动步骤：命令行备用
-
-```powershell
-pnpm check:android
-pnpm test:android
-pnpm dev:android
-```
+2. 等待 Gradle 同步完成。
+3. 选择 `app` 配置。
+4. 启动 Android Emulator，推荐 Pixel_7 或 API 35/37 模拟器。
+5. 点击 Run。
 
 手动安装到当前模拟器：
 
@@ -250,8 +253,9 @@ cd apps/android
 | --- | --- | --- |
 | App 显示服务离线 | Server health、`10.0.2.2`、HTTP 配置 | 确认 `Invoke-RestMethod http://localhost:8787/health` 正常；Manifest 已配置本地 HTTP。 |
 | Gradle 版本过低 | 是否误用系统 Gradle | 使用 `pnpm dev:android` 或 `apps/android/gradlew.bat`。 |
-| 模拟器启动失败 | `ANDROID_SDK_ROOT` 与 AVD 路径 | 以 `apps/android/local.properties` 的 `sdk.dir` 为准。 |
-| `adb devices` 显示 offline | ADB 状态异常 | 执行 `adb kill-server`、`adb start-server`，必要时重启模拟器。 |
+| 模拟器启动失败 | `ANDROID_SDK_ROOT` 与 AVD 路径 | 使用 `pnpm dev:android`，脚本会以 `apps/android/local.properties` 的 `sdk.dir` 为准。 |
+| `adb devices` 显示 offline | ADB 状态异常 | 使用 `pnpm dev:android`，脚本会重启 ADB，必要时重启当前 SDK 下的 emulator。 |
+| APK 覆盖安装失败 | 设备上是否已有不同签名旧包 | `pnpm dev:android` 会自动卸载 `com.qianwen.demo` 后重新安装 debug APK。 |
 | 真机访问失败 | API 是否仍是 `10.0.2.2` | 改成电脑局域网 IP，并确认同一 Wi-Fi。 |
 
 ## 4. iOS 端
@@ -331,7 +335,7 @@ xcodebuild -project apps/ios/QianwenApp.xcodeproj -scheme QianwenAppTests -sdk i
 ## 5. 推荐面试演示顺序
 
 1. 用 `GET /health` 证明 Server 已在线。
-2. 打开 Android Studio 运行 Android，作为主展示端完成会话管理和聊天流式全流程。
+2. 执行 `pnpm dev:android` 打开 Android，作为主展示端完成会话管理和聊天流式全流程。
 3. 展示 Android 服务状态页，讲清楚 `10.0.2.2`、模型模式、缓存时间和弱网处理。
 4. 切到 Web，快速证明同一服务端合同也支撑 Web 完整闭环和 Markdown/代码块能力。
 5. 打开 iOS 工程，说明 SwiftUI 原生实现、API 层和 SSE 解析结构；如在 macOS，现场运行 Simulator。

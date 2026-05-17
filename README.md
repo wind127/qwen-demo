@@ -77,7 +77,9 @@ pnpm dev:web
 pnpm dev:android
 ```
 
-或用 Android Studio 打开 `apps/android`，选择 Pixel 7 等模拟器运行 `app`。Android Emulator 默认通过 `http://10.0.2.2:8787` 访问宿主机服务端。
+该命令会自动读取 `apps/android/local.properties` 的 SDK 路径，启动或复用 Pixel_7 等 AVD，构建 debug APK，安装到模拟器并打开 App。Android Emulator 默认通过 `http://10.0.2.2:8787` 访问宿主机服务端；如果未先启动 `pnpm dev:server`，App 仍会打开，但聊天会显示离线状态。
+
+也可以用 Android Studio 打开 `apps/android`，选择 Pixel 7 等模拟器运行 `app`。
 
 ## 验证命令
 

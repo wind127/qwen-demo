@@ -22,4 +22,5 @@ if ($manifest -notmatch 'android:usesCleartextTraffic="true"') {
 }
 
 Write-Host "Android native project structure check passed."
-Write-Host "To build after installing Android Studio / Gradle: cd apps/android; .\gradlew.bat :app:assembleDebug"
+Write-Host "To launch the Android demo: pnpm dev:android"
+Write-Host "Direct Gradle build: cd apps/android; .\gradlew.bat :app:assembleDebug"

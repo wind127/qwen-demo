@@ -31,8 +31,8 @@
 ## 现场执行顺序
 
 1. 保持服务端运行在 `http://localhost:8787`，先用 `Invoke-RestMethod http://localhost:8787/health` 证明服务在线。
-2. 用 Android Studio 打开 [apps/android](../apps/android)，选择 Pixel_7 或其他模拟器运行 `app`。
-3. 如果现场要用命令行备用路径，执行 `pnpm test:android`、`pnpm dev:android`，它们会优先使用 wrapper、`local.properties` SDK 路径和稳定的 Gradle 缓存。
+2. 执行 `pnpm dev:android`，脚本会启动或复用 Pixel_7 等模拟器，构建、安装并打开 Android App。
+3. 如果现场需要调试源码，再用 Android Studio 打开 [apps/android](../apps/android)，选择 Pixel_7 或其他模拟器运行 `app`。
 4. App 首页先展示服务在线、本地缓存时间和会话列表，再进入会话完成发送和 SSE 流式回复。
 5. Android 演示完成后，再切到 Web 说明同一服务端合同也能支撑 Web 完整闭环。
 

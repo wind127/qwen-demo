@@ -1,7 +1,7 @@
 # Verification
 
 日期：2026-05-14  
-最近更新：2026-05-16
+最近更新：2026-05-17
 执行者：Codex
 
 ## 结果
@@ -9,7 +9,7 @@
 - `pnpm check:contract`：通过，多端 API 合同检查通过；当前会校验 10 个 shared DTO 与 Android/iOS 字段、9 个 Server/Web/Android/iOS 端点和 `conversation/message/delta/done/error` SSE 事件集合。
 - `pnpm check:android`：通过，Android 原生工程结构检查通过。
 - `pnpm test:android`：通过，`:app:testDebugUnitTest` 成功。
-- `pnpm dev:android`：通过，`:app:assembleDebug` 成功。
+- `pnpm dev:android`：通过，自动读取 Android SDK，启动或复用 AVD，`:app:assembleDebug` 成功，APK 安装成功，并打开 `com.qianwen.demo/.MainActivity`。
 - `apps/android/gradlew.bat --no-daemon :app:assembleDebug :app:testDebugUnitTest`：通过，wrapper 直跑构建与 JVM 单测成功。
 - `pnpm check:ios`：通过，iOS 原生工程结构检查通过；当前 Windows 环境无 xcodebuild。
 - `pnpm test`：通过。
@@ -86,7 +86,7 @@
 - `pnpm test`：通过，shared 2、api-client 2、server 10、web 7。
 - `pnpm build`：通过，shared、api-client、server TypeScript 检查与 web Vite build 成功。
 - `pnpm check:ios`：通过；Windows 环境仍无 `xcodebuild`。
-- `pnpm dev:android`：通过，`:app:assembleDebug` 成功。
+- `pnpm dev:android`：通过，`:app:assembleDebug`、APK 安装和 `MainActivity` 启动成功。
 
 ## 本轮验证重点
 
@@ -117,3 +117,11 @@
 - Web 控件响应：搜索入口、侧边栏收起/展开、我的空间、智能体、更多操作、模型状态刷新、工具栏模板、语音模板、取消生成、助手朗读/分享/复制/编辑/重新生成/赞同/反对均已绑定反馈或实际行为。
 - Android 控件响应：我的空间、智能体、服务状态刷新、工具胶囊、拍照入口、助手复制/分享/编辑/重新生成/赞同/反对均已绑定反馈或实际行为，并通过 ViewModel 单测覆盖模板插入与重新生成。
 - 回归验证通过：`pnpm check:repo`、`pnpm check:contract`、`pnpm check:android`、`pnpm check:ios`、`pnpm test:android`、`pnpm --filter @qianwen/web test`、`pnpm --filter @qianwen/web build`、`pnpm --filter @qianwen/server test`、`pnpm --filter @qianwen/server build`、`pnpm test`、`pnpm build`、`pnpm dev:android`。
+
+## 2026-05-17 Android 一键启动验证
+
+- 脚本更新：`pnpm dev:android` 现在会优先读取 `apps/android/local.properties` 的 `sdk.dir`，同步设置 `ANDROID_SDK_ROOT` 和 `ANDROID_HOME`，避免终端残留的错误 SDK 路径导致 `Broken AVD system path`。
+- 模拟器处理：无可用设备时自动选择 `QWEN_ANDROID_AVD`、`Pixel_7` 或首个 AVD；若发现当前 SDK 下的 emulator 卡住或 `offline`，会重启 ADB 与 emulator。
+- 安装启动：脚本执行 `:app:assembleDebug` 后安装 `app-debug.apk`，覆盖安装失败时自动卸载 `com.qianwen.demo` 后重装，并执行 `am start -n com.qianwen.demo/.MainActivity`。
+- 前台确认：`adb shell dumpsys activity activities` 显示 `com.qianwen.demo/.MainActivity` 为 `topResumedActivity` 和 `mCurrentFocus`。
+- 本轮验证通过：Android 脚本语法检查、`pnpm check:android`、`pnpm test:android`、`pnpm dev:android`、`pnpm check:repo`。

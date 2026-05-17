@@ -153,6 +153,15 @@
 - 影响：仓库具备可复用的发布前自检命令；README 更适合作为 GitHub 主页；Web/Android 假按钮减少，现场点击更有反馈。
 - 验证结果：本地 tracked 文件与 `origin/main` 均通过 `check:repo`；`pnpm start:server` 临时端口 health smoke 通过；Web 7 个测试、Android JVM 单测、全仓库 test/build、contract、Android/iOS 检查与 Android assemble 均通过。
 
+## 2026-05-17 18:20 - Android 一键启动脚本收口
+
+- 阶段：Android 演示入口修复与文档同步。
+- 操作：将 `pnpm dev:android` 从单纯构建增强为自动修正 SDK 路径、启动或复用 AVD、处理卡住的 emulator、构建 APK、安装 APK 并打开 `MainActivity` 的完整链路；同步 README、Android 指南、Runbook 和展示说明。
+- 决策：服务端未启动时只给出提示，不阻断 Android App 打开，保证面试现场先看到客户端界面。
+- 原因：用户执行 `pnpm dev:android` 后没有界面，是因为旧脚本只做结构检查和 assemble，没有负责模拟器、安装与启动。
+- 影响：现场可以优先执行 `pnpm dev:android` 启动 Android 主展示端；Android Studio 作为调试备选路径。
+- 验证结果：Android 脚本语法检查、`pnpm check:android`、`pnpm test:android`、`pnpm dev:android`、`adb dumpsys activity` 前台确认和 `pnpm check:repo` 均通过。
+
 ## 2026-05-16 16:40 - GitHub 发布审计与控件响应增强
 
 - 阶段：发布面审计、代码实现与本地验证。

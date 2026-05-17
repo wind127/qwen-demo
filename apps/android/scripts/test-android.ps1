@@ -3,6 +3,16 @@ if (-not $?) {
   exit 1
 }
 
+function Convert-SdkPath {
+  param([string] $RawPath)
+
+  if (-not $RawPath) {
+    return $null
+  }
+
+  return $RawPath.Replace("\\", [System.IO.Path]::DirectorySeparatorChar).Replace("\:", ":")
+}
+
 Push-Location "$PSScriptRoot/.."
 try {
   $localProperties = Join-Path (Get-Location) "local.properties"
@@ -10,7 +20,7 @@ try {
   if (Test-Path $localProperties) {
     $sdkLine = Get-Content $localProperties | Where-Object { $_.StartsWith("sdk.dir=") } | Select-Object -First 1
     if ($sdkLine) {
-      $localSdkDir = $sdkLine.Substring("sdk.dir=".Length).Replace("\\", [System.IO.Path]::DirectorySeparatorChar)
+      $localSdkDir = Convert-SdkPath $sdkLine.Substring("sdk.dir=".Length)
     }
   }
   if ($localSdkDir) {

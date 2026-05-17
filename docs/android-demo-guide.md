@@ -1,7 +1,7 @@
 # Android 原生端演示指南
 
 日期：2026-05-14  
-最近更新：2026-05-15  
+最近更新：2026-05-17
 执行者：Codex
 
 本指南专注 Android 主展示端。Server、Web、iOS 的完整启动和演示步骤统一见 [docs/demo-runbook.md](demo-runbook.md)。
@@ -14,15 +14,23 @@
 pnpm dev:server
 ```
 
-2. 打开 Android 工程：
+2. 一键启动 Android 端：
+
+```bash
+pnpm dev:android
+```
+
+该命令会自动完成 Android SDK 路径修正、AVD 启动或复用、debug APK 构建、安装和 `MainActivity` 打开。若服务端未启动，App 仍会打开，只是服务状态会显示离线。
+
+3. 可选：使用 Android Studio 打开工程：
 
 ```text
 apps/android
 ```
 
-3. 在 Android Studio 中等待 Gradle 同步完成，选择 `app`，运行到 Android Emulator。
+4. 在 Android Studio 中等待 Gradle 同步完成，选择 `app`，运行到 Android Emulator。
 
-4. 本地命令行验证：
+5. 本地命令行验证：
 
 ```bash
 pnpm check:android
@@ -38,8 +46,8 @@ pnpm dev:android
 pnpm check:contract
 pnpm check:android
 pnpm test:android
-pnpm dev:android
 Invoke-RestMethod http://localhost:8787/health
+pnpm dev:android
 ```
 
 如果需要手动安装到模拟器：
@@ -50,7 +58,7 @@ cd apps/android
 adb shell am start -n com.qianwen.demo/.MainActivity
 ```
 
-现场优先使用 Android Studio 打开 `apps/android` 运行；命令行脚本作为备用验证路径。
+现场优先使用 `pnpm dev:android` 保持路径固定；Android Studio 可作为手动调试路径。
 
 ## API 地址
 
@@ -94,6 +102,7 @@ http://192.168.x.x:8787
 | `pnpm test:android` 提示 Gradle 版本过低 | 是否误用了系统 Gradle `8.10.2` | 使用 `apps/android/gradlew.bat`；当前脚本已优先走 wrapper 的 Gradle `8.13`。 |
 | Gradle test worker 报 `GradleWorkerMain` 找不到 | Gradle 缓存是否落在中文用户目录 | 保持 `GRADLE_USER_HOME=C:\Gradle\user-home`，并使用 `--max-workers=1`。 |
 | 模拟器显示 `offline` 或启动报 `Broken AVD system path` | `ANDROID_SDK_ROOT` 是否与 AVD 实际 SDK 路径一致 | 以 `apps/android/local.properties` 的 `sdk.dir` 为准；当前脚本会自动读取。 |
+| Android Studio 提示 Pixel_7 已在运行，但命令行 `adb` 看不到设备 | 模拟器进程是否卡住或使用了错误 SDK | `pnpm dev:android` 会重启当前 SDK 下卡住的 emulator，再等待设备变成 `device`。 |
 | 宿主机 health 正常，App 显示服务离线 | Manifest 是否允许本地 HTTP；服务端是否监听 `8787` | 确认 `android:usesCleartextTraffic="true"`，并用 `Invoke-RestMethod http://localhost:8787/health` 验证服务端。 |
 | SSE 迟迟没有回复 | 当前是否真实 `qwen` 模式、网络或额度是否波动 | 先看服务状态页 `modelMode`；必要时使用 mock fallback 做备用演示。 |
 | 真机无法访问服务端 | 手机和电脑是否同一局域网；API 地址是否仍是 `10.0.2.2` | 改为电脑局域网 IP，例如 `http://192.168.x.x:8787`，并放行本机端口。 |
