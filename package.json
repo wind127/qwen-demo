@@ -7,6 +7,7 @@
     "dev": "pnpm --parallel --filter @qianwen/server --filter @qianwen/web dev",
     "dev:server": "pnpm --filter @qianwen/server dev",
     "dev:web": "pnpm --filter @qianwen/web dev",
+    "start:server": "pnpm --filter @qianwen/server start",
     "clear:ports": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/clear-demo-processes.ps1",
     "dev:android": "powershell -NoProfile -ExecutionPolicy Bypass -File apps/android/scripts/dev-android.ps1",
     "test:android": "powershell -NoProfile -ExecutionPolicy Bypass -File apps/android/scripts/test-android.ps1",
@@ -14,6 +15,7 @@
     "check:android": "powershell -NoProfile -ExecutionPolicy Bypass -File apps/android/scripts/check-android.ps1",
     "check:ios": "powershell -NoProfile -ExecutionPolicy Bypass -File apps/ios/scripts/check-ios.ps1",
     "check:contract": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-contract.ps1",
+    "check:repo": "node scripts/check-repository.mjs",
     "package:submission": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-submission.ps1",
     "build": "pnpm --filter @qianwen/shared build && pnpm --filter @qianwen/api-client build && pnpm --filter @qianwen/server build && pnpm --filter @qianwen/web build",
     "test": "pnpm --filter @qianwen/shared test && pnpm --filter @qianwen/api-client test && pnpm --filter @qianwen/server test && pnpm --filter @qianwen/web test"

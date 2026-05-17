@@ -7,7 +7,8 @@ const serverRoot = fileURLToPath(new URL("../", import.meta.url));
 const projectRoot = resolve(serverRoot, "../..");
 
 config({ path: resolve(projectRoot, ".env"), quiet: true });
-config({ path: resolve(serverRoot, ".env"), override: true, quiet: true });
+// 部署平台注入的环境变量优先级最高，本地 .env 只做开发兜底。
+config({ path: resolve(serverRoot, ".env"), quiet: true });
 
 export function getServerConfig() {
   const apiKey = process.env.DASHSCOPE_API_KEY ?? process.env.QWEN_API_KEY;

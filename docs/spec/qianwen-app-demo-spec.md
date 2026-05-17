@@ -11,6 +11,7 @@
 - 2026-05-14：追加多端会话管理一致性修订。Android 与 iOS 补齐搜索、重命名、置顶、删除会话，并新增多端 API 合同静态检查。
 - 2026-05-14：追加 Android 主展示端增强修订。Android 状态层细分 service/list/send/cache/retry，SSE 支持 done/error/异常帧/中断/取消，DataStore 快照增加版本与保存时间，并补充 ViewModel JVM 单测和 Android 演示指南。
 - 2026-05-15：追加多端演示 Runbook 修订。新增 `docs/demo-runbook.md`，统一 Server、Web、Android、iOS 的启动、演示、验证和排障步骤，并同步 README、showcase、architecture、Android guide 与验证记录入口。
+- 2026-05-16：追加 GitHub 发布面审计与控件响应增强修订。核对 `origin/main` 是否含隐私信息、冗余文件、可部署复现信息和 README 结构；Web 与 Android 客户端补齐可见控件的点击反馈、草稿快捷动作、取消/重试/复制等交互验收。
 
 ## 项目目标
 
@@ -21,6 +22,7 @@
 - 服务端可本地启动并返回健康检查。
 - Web 客户端可完成启动、新建会话、发送消息、接收回复、展示 Markdown 和代码块复制。
 - Android 作为主展示端，使用原生技术栈完成会话管理、聊天流式回复、异常恢复、本地缓存和服务状态演示。
+- Web 与 Android 可见按钮必须具备明确点击结果：执行真实动作、切换状态、更新草稿、复制内容、取消生成、重试或展示非阻塞反馈。
 - iOS 使用原生技术栈，具备真实工程结构、核心页面、API 接入层和本地持久化基础。
 - 真实千问 API 不可用时，服务端仍能通过 mock fallback 完成问答。
 - 开发过程通过追加式文档记录，且沉淀至少一个可复用 Codex Skill。
@@ -209,11 +211,15 @@ iOS：
 - `GET /health` 返回 `status: "ok"`。
 - Android 可以完整演示新建会话、搜索、重命名、置顶、删除、聊天、SSE、取消、重试、清空、服务状态和本地缓存恢复。
 - Web 可以完整完成一次聊天闭环。
+- Web 与 Android 的工具栏、会话操作、回复操作、状态入口和输入区控件均可点击并产生可见响应，不再存在默认提交表单或空处理的按钮。
 - Android/iOS 不再依赖 React Native/Expo，具备原生目录与 API 接入层。
 - `docs/demo-runbook.md` 覆盖 Server、Web、Android、iOS 的启动、演示、验证和排障步骤。
 - `docs/development-log.md` 追加记录本轮过程。
 - `.codex/skills` 至少包含一个有效 `SKILL.md`。
 - `pnpm package:submission` 可以生成默认不含对话记录、真实 `.env`、`local.properties`、IDE 目录和构建产物的代码文档提交包。
+- `pnpm check:repo` 可以检查 GitHub 发布前的 tracked 文件卫生，确保无真实密钥、本机配置、IDE 文件、构建产物、日志、压缩包或对话记录。
+- GitHub README 首页应保持简洁，包含演示截图、核心架构、快速复现、部署入口、验证命令和文档入口。
+- Web 与 Android 可见控件应有实际响应或明确反馈，避免现场点击后无变化。
 
 ## 分阶段实现计划
 

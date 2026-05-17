@@ -132,6 +132,42 @@ describe("Qianwen web app", () => {
 
     expect(await screen.findByText("历史回答")).toBeInTheDocument();
   });
+
+  it("responds to toolbar controls without submitting the composer", async () => {
+    const fetchMock = vi.fn(mockFetch);
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await screen.findByText("服务端 mock");
+    const composer = screen.getByPlaceholderText("给千问发送消息...");
+    await user.type(composer, "原始问题");
+    await user.click(screen.getByRole("button", { name: "思考" }));
+
+    expect(composer).toHaveValue("原始问题\n请一步一步思考：");
+    expect(screen.getByRole("status")).toHaveTextContent("已插入思考模板。");
+    const streamCalls = fetchMock.mock.calls.filter(([input]) => String(input).endsWith("/chat/stream"));
+    expect(streamCalls).toHaveLength(0);
+  });
+
+  it("focuses search and handles assistant action buttons", async () => {
+    vi.stubGlobal("fetch", vi.fn(mockFetch));
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await screen.findByText("服务端 mock");
+    await user.click(screen.getByRole("button", { name: "搜索入口" }));
+    expect(screen.getByLabelText("搜索会话")).toHaveFocus();
+
+    await user.click(screen.getByRole("button", { name: "新建会话" }));
+    await user.type(screen.getByPlaceholderText("给千问发送消息..."), "复制按钮{enter}");
+    await screen.findByText(/千问 Demo 助手/);
+    await user.click(screen.getByRole("button", { name: "复制回复" }));
+
+    expect(await screen.findByText("回复已复制。")).toBeInTheDocument();
+  });
 });
 
 async function mockFetch(input: RequestInfo | URL, init?: RequestInit) {

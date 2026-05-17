@@ -9,5 +9,6 @@ try {
   console.log(`千问服务端已启动：http://${host}:${port}`);
 } catch (error) {
   app.log.error(error);
+  console.error(error instanceof Error ? error.message : error);
   process.exit(1);
 }

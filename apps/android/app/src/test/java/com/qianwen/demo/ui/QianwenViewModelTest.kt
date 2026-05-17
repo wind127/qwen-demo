@@ -107,6 +107,50 @@ class QianwenViewModelTest {
         assertNotNull(state.retryDraft)
         assertEquals("慢一点回答", state.draft)
     }
+
+    @Test
+    fun composerTemplateAddsDraftAndNotice() = runTest {
+        val conversation = sampleConversation()
+        val repository = FakeRepository(
+            snapshotResult = snapshotWithConversation(conversation),
+            listConversations = listOf(conversation)
+        )
+        val viewModel = QianwenViewModel(repository, "http://test")
+        advanceUntilIdle()
+
+        viewModel.updateDraft("原始问题")
+        viewModel.applyComposerTemplate("请一步一步思考：")
+
+        val state = viewModel.state.value
+        assertEquals("原始问题\n请一步一步思考：", state.draft)
+        assertEquals("已插入快捷提示。", state.notice)
+    }
+
+    @Test
+    fun regenerateFromAssistantMessageUsesPreviousUserPrompt() = runTest {
+        val conversation = sampleConversation()
+        val userMessage = sampleMessage(conversation.id, role = "user", content = "原问题")
+        val assistantMessage = sampleMessage(conversation.id, role = "assistant", content = "旧回答")
+        val repository = FakeRepository(
+            snapshotResult = LocalSnapshotResult(
+                LocalSnapshot(
+                    conversations = listOf(conversation),
+                    messagesByConversation = mapOf(conversation.id to listOf(userMessage, assistantMessage)),
+                    selectedConversationId = conversation.id
+                ),
+                SnapshotReadStatus.Restored
+            ),
+            listConversations = listOf(conversation)
+        )
+        val viewModel = QianwenViewModel(repository, "http://test")
+        advanceUntilIdle()
+
+        viewModel.regenerateFromMessage(assistantMessage)
+        advanceUntilIdle()
+
+        assertEquals(1, repository.streamCalls)
+        assertEquals("原问题", repository.lastStreamMessage)
+    }
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -131,6 +175,7 @@ private class FakeRepository(
     private val streamBlock: (suspend () -> Unit)? = null
 ) : QianwenRepositoryContract {
     var streamCalls = 0
+    var lastStreamMessage: String? = null
     var lastSnapshot: LocalSnapshot? = null
 
     override suspend fun health(): HealthResponse {
@@ -185,6 +230,7 @@ private class FakeRepository(
         onEvent: suspend (ChatStreamEvent) -> Unit
     ) {
         streamCalls += 1
+        lastStreamMessage = message
         streamFailure?.let { throw it }
         streamBlock?.invoke()
     }

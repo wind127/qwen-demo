@@ -47,6 +47,25 @@ button:disabled {
   background: #ffffff;
 }
 
+.app-shell.sidebar-collapsed {
+  grid-template-columns: 0 minmax(0, 1fr);
+}
+
+.app-shell.sidebar-collapsed .sidebar {
+  overflow: hidden;
+  border-right: 0;
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.app-shell.sidebar-collapsed .sidebar > * {
+  visibility: hidden;
+}
+
+.app-shell.sidebar-collapsed .mobile-menu-button {
+  display: inline-flex;
+}
+
 .sidebar {
   display: flex;
   min-height: 0;
@@ -104,6 +123,7 @@ button:disabled {
 .assistant-actions button,
 .tool-icon,
 .mic-button,
+.cancel-button,
 .send-button,
 .icon-button,
 .mobile-menu-button {
@@ -393,15 +413,35 @@ button:disabled {
   color: #c2c7cf;
 }
 
+.feedback-slot {
+  display: grid;
+  gap: 8px;
+  min-height: 0;
+}
+
+.feedback-slot:empty {
+  display: none;
+}
+
+.notice-banner,
 .error-banner {
   display: flex;
   align-items: center;
   gap: 9px;
   width: min(1000px, calc(100% - 48px));
   margin: 10px auto 0;
-  border: 1px solid #ffd3c8;
   border-radius: 14px;
   padding: 12px 14px;
+}
+
+.notice-banner {
+  border: 1px solid #d7ebff;
+  background: #f2f8ff;
+  color: #25527f;
+}
+
+.error-banner {
+  border: 1px solid #ffd3c8;
   background: #fff6f3;
   color: #9a321d;
 }
@@ -618,6 +658,7 @@ button:disabled {
 .tool-icon,
 .tool-chip,
 .mic-button,
+.cancel-button,
 .send-button {
   height: 34px;
   border-radius: 18px;
@@ -625,6 +666,7 @@ button:disabled {
 
 .tool-icon,
 .mic-button,
+.cancel-button,
 .send-button {
   width: 34px;
   flex: 0 0 auto;
@@ -644,6 +686,16 @@ button:disabled {
 .tool-icon:hover,
 .mic-button:hover {
   background: #f1f3f7;
+}
+
+.cancel-button {
+  border: 0;
+  background: #fff1ee;
+  color: #9a321d;
+}
+
+.cancel-button:hover {
+  background: #ffe1da;
 }
 
 .send-button {
@@ -683,6 +735,14 @@ button:disabled {
     height: auto;
     min-height: 100vh;
     overflow: auto;
+  }
+
+  .app-shell:not(.sidebar-open) .sidebar {
+    display: none;
+  }
+
+  .app-shell.sidebar-open .sidebar {
+    display: flex;
   }
 
   .sidebar {

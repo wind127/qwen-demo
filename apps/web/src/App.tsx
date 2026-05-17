@@ -60,7 +60,13 @@ export function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [editingConversationId, setEditingConversationId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
+  const [notice, setNotice] = useState<string | null>(null);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const draftInputRef = useRef<HTMLTextAreaElement | null>(null);
+  const streamAbortRef = useRef<AbortController | null>(null);
 
   const api = useMemo(
     () =>
@@ -80,6 +86,19 @@ export function App() {
 
     return conversations.filter((conversation) => conversation.title.toLowerCase().includes(query));
   }, [conversations, searchQuery]);
+
+  const showNotice = useCallback((message: string) => {
+    setNotice(message);
+  }, []);
+
+  useEffect(() => {
+    if (!notice) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => setNotice(null), 2600);
+    return () => window.clearTimeout(timer);
+  }, [notice]);
 
   useEffect(() => {
     const state: PersistedState = {
@@ -166,6 +185,7 @@ export function App() {
   const selectConversation = useCallback(
     async (conversationId: string) => {
       setSelectedConversationId(conversationId);
+      setIsMobileSidebarOpen(false);
       if (messagesByConversation[conversationId]?.length) {
         return;
       }
@@ -201,10 +221,12 @@ export function App() {
   const handleNewConversation = useCallback(async () => {
     try {
       await createConversation();
+      setIsMobileSidebarOpen(false);
+      showNotice("已新建会话。");
     } catch {
       setError("新建会话失败，请检查服务端状态。");
     }
-  }, [createConversation]);
+  }, [createConversation, showNotice]);
 
   const handleClearMessages = useCallback(async () => {
     if (!selectedConversationId) {
@@ -218,10 +240,11 @@ export function App() {
         [selectedConversationId]: response.messages
       }));
       setError(null);
+      showNotice("会话已清空。");
     } catch {
       setError("清空会话失败，请稍后重试。");
     }
-  }, [api, selectedConversationId]);
+  }, [api, selectedConversationId, showNotice]);
 
   const handleDeleteConversation = useCallback(
     async (conversationId: string) => {
@@ -255,8 +278,9 @@ export function App() {
         const nextConversation = sortConversations(conversations.filter((item) => item.id !== conversationId))[0];
         return nextConversation?.id;
       });
+      showNotice("会话已删除。");
     },
-    [api, conversations]
+    [api, conversations, showNotice]
   );
 
   const handleTogglePinned = useCallback(
@@ -270,11 +294,12 @@ export function App() {
         const response = await api.updateConversation(conversation.id, { pinned: nextPinned });
         setConversations((current) => upsertConversation(current, response.conversation));
         setError(null);
+        showNotice(nextPinned ? "会话已置顶。" : "已取消置顶。");
       } catch {
         setError("置顶状态同步失败，已保留本地修改。");
       }
     },
-    [api]
+    [api, showNotice]
   );
 
   const startRenameConversation = useCallback((conversation: Conversation) => {
@@ -307,11 +332,12 @@ export function App() {
         const response = await api.updateConversation(conversationId, { title });
         setConversations((current) => upsertConversation(current, response.conversation));
         setError(null);
+        showNotice("会话已重命名。");
       } catch {
         setError("重命名同步失败，已保留本地修改。");
       }
     },
-    [api, cancelRenameConversation, editingTitle]
+    [api, cancelRenameConversation, editingTitle, showNotice]
   );
 
   const handleSend = useCallback(async (retryPrompt?: string) => {
@@ -326,6 +352,9 @@ export function App() {
     setIsSending(true);
     setError(null);
     setFailedPrompt(null);
+    setNotice(null);
+    const abortController = new AbortController();
+    streamAbortRef.current = abortController;
 
     try {
       const conversation =
@@ -337,29 +366,115 @@ export function App() {
           message: prompt
         },
         {
+          signal: abortController.signal,
           onEvent: (event) => {
             applyStreamEvent(event, setConversations, setMessagesByConversation, setSelectedConversationId);
           }
         }
       );
-    } catch {
+    } catch (sendError) {
       setFailedPrompt(prompt);
-      setError("发送失败，请确认服务端已启动后重试。");
+      if (isAbortError(sendError)) {
+        setError("已取消本次生成，可继续编辑后重试。");
+        showNotice("已取消生成。");
+      } else {
+        setError("发送失败，请确认服务端已启动后重试。");
+      }
     } finally {
+      streamAbortRef.current = null;
       setIsSending(false);
     }
-  }, [api, createConversation, draft, isSending, selectedConversation]);
+  }, [api, createConversation, draft, isSending, selectedConversation, showNotice]);
+
+  const handleCancelSend = useCallback(() => {
+    streamAbortRef.current?.abort();
+  }, []);
+
+  const focusSearch = useCallback(() => {
+    setIsSidebarCollapsed(false);
+    setIsMobileSidebarOpen(true);
+    window.setTimeout(() => searchInputRef.current?.focus(), 0);
+    showNotice("可以搜索本地与远端会话。");
+  }, [showNotice]);
+
+  const toggleSidebar = useCallback(() => {
+    setIsSidebarCollapsed((current) => {
+      const next = !current;
+      showNotice(next ? "会话栏已收起。" : "会话栏已展开。");
+      return next;
+    });
+  }, [showNotice]);
+
+  const openSidebar = useCallback(() => {
+    setIsSidebarCollapsed(false);
+    setIsMobileSidebarOpen(true);
+    showNotice("会话栏已打开。");
+  }, [showNotice]);
+
+  const appendDraftTemplate = useCallback(
+    (template: string, message: string) => {
+      setDraft((current) => {
+        const trimmed = current.trimEnd();
+        return trimmed ? `${trimmed}\n${template}` : template;
+      });
+      window.setTimeout(() => draftInputRef.current?.focus(), 0);
+      showNotice(message);
+    },
+    [showNotice]
+  );
+
+  const handleRefreshHealth = useCallback(async () => {
+    try {
+      const healthResponse = await api.health();
+      setHealth(healthResponse);
+      setError(null);
+      showNotice(`服务端在线：${healthResponse.modelMode}`);
+    } catch {
+      setError("服务端状态刷新失败，请确认 apps/server 已启动。");
+    }
+  }, [api, showNotice]);
+
+  const useAssistantReplyAsDraft = useCallback((content: string) => {
+    setDraft(content);
+    window.setTimeout(() => draftInputRef.current?.focus(), 0);
+  }, []);
+
+  const regenerateAssistantReply = useCallback(
+    (message: ChatMessage) => {
+      const messageIndex = selectedMessages.findIndex((item) => item.id === message.id);
+      const prompt = selectedMessages
+        .slice(0, messageIndex < 0 ? undefined : messageIndex)
+        .reverse()
+        .find((item) => item.role === "user")?.content;
+
+      if (!prompt) {
+        showNotice("没有找到可重新生成的上一条问题。");
+        return;
+      }
+
+      void handleSend(prompt);
+    },
+    [handleSend, selectedMessages, showNotice]
+  );
 
   return (
-    <main className="app-shell">
+    <main
+      className={[
+        "app-shell",
+        isSidebarCollapsed ? "sidebar-collapsed" : "",
+        isMobileSidebarOpen ? "sidebar-open" : ""
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <aside className="sidebar" aria-label="会话列表">
         <div className="brand">
           <h1>千问</h1>
           <div className="sidebar-top-actions">
-            <button type="button" aria-label="搜索入口" title="搜索">
+            <button type="button" aria-label="搜索入口" title="搜索" onClick={focusSearch}>
               <Search size={18} />
             </button>
-            <button type="button" aria-label="收起侧边栏" title="收起">
+            <button type="button" aria-label="收起侧边栏" title="收起" onClick={toggleSidebar}>
               <PanelLeft size={18} />
             </button>
           </div>
@@ -370,7 +485,13 @@ export function App() {
             <Plus size={18} />
             <span>新建对话</span>
           </button>
-          <button className="secondary-action" type="button" aria-label="新建快捷入口" title="快捷入口">
+          <button
+            className="secondary-action"
+            type="button"
+            aria-label="新建快捷入口"
+            title="快捷入口"
+            onClick={() => void handleNewConversation()}
+          >
             <MessageSquare size={18} />
           </button>
         </div>
@@ -378,6 +499,7 @@ export function App() {
         <label className="conversation-search">
           <Search size={16} />
           <input
+            ref={searchInputRef}
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder="搜索会话"
@@ -386,11 +508,14 @@ export function App() {
         </label>
 
         <nav className="workspace-nav" aria-label="千问导航">
-          <button type="button">
+          <button type="button" onClick={() => showNotice("我的空间会保留当前浏览器中的会话与消息。")}>
             <Folder size={18} />
             <span>我的空间</span>
           </button>
-          <button type="button">
+          <button
+            type="button"
+            onClick={() => appendDraftTemplate("请以智能体工作流拆解这个任务：", "已插入智能体任务模板。")}
+          >
             <Sparkles size={18} />
             <span>智能体</span>
           </button>
@@ -469,7 +594,12 @@ export function App() {
                       >
                         <Trash2 size={15} />
                       </button>
-                      <button type="button" aria-label="更多会话操作" title="更多">
+                      <button
+                        type="button"
+                        aria-label="更多会话操作"
+                        title="更多"
+                        onClick={() => showNotice("当前行已提供置顶、重命名和删除操作。")}
+                      >
                         <MoreHorizontal size={15} />
                       </button>
                     </div>
@@ -489,10 +619,10 @@ export function App() {
       <section className="chat-panel" aria-label="聊天窗口">
         <header className="chat-header">
           <div className="chat-title-stack">
-            <button className="mobile-menu-button" type="button" aria-label="打开侧边栏">
+            <button className="mobile-menu-button" type="button" aria-label="打开侧边栏" onClick={openSidebar}>
               <Menu size={22} />
             </button>
-            <button className="model-selector" type="button" aria-label="切换模型">
+            <button className="model-selector" type="button" aria-label="切换模型" onClick={() => void handleRefreshHealth()}>
               <span>Qwen3.5-千问</span>
               <ChevronDown size={16} />
             </button>
@@ -510,17 +640,26 @@ export function App() {
           </button>
         </header>
 
-        {error ? (
-          <div className="error-banner" role="alert">
-            <AlertCircle size={18} />
-            <span>{error}</span>
-            {failedPrompt ? (
-              <button type="button" onClick={() => void handleSend(failedPrompt)} disabled={isSending}>
-                重试
-              </button>
-            ) : null}
-          </div>
-        ) : null}
+        <div className="feedback-slot">
+          {notice ? (
+            <div className="notice-banner" role="status">
+              <Sparkles size={18} />
+              <span>{notice}</span>
+            </div>
+          ) : null}
+
+          {error ? (
+            <div className="error-banner" role="alert">
+              <AlertCircle size={18} />
+              <span>{error}</span>
+              {failedPrompt ? (
+                <button type="button" onClick={() => void handleSend(failedPrompt)} disabled={isSending}>
+                  重试
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
 
         <div className="messages" aria-live="polite">
           {selectedMessages.length === 0 ? (
@@ -529,7 +668,15 @@ export function App() {
               <p>可以向我提问、让我解释代码，或请我用 Markdown 整理方案。</p>
             </div>
           ) : (
-            selectedMessages.map((message) => <MessageBubble key={message.id} message={message} />)
+            selectedMessages.map((message) => (
+              <MessageBubble
+                key={message.id}
+                message={message}
+                onNotice={showNotice}
+                onRegenerate={regenerateAssistantReply}
+                onUseAsDraft={useAssistantReplyAsDraft}
+              />
+            ))
           )}
           <div ref={messagesEndRef} className="messages-end" />
         </div>
@@ -542,6 +689,7 @@ export function App() {
           }}
         >
           <textarea
+            ref={draftInputRef}
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             onKeyDown={(event) => {
@@ -555,28 +703,59 @@ export function App() {
           />
           <div className="composer-toolbar" aria-label="输入工具栏">
             <div className="composer-tools">
-              <button type="button" className="tool-icon" aria-label="添加内容">
+              <button
+                type="button"
+                className="tool-icon"
+                aria-label="添加内容"
+                onClick={() => appendDraftTemplate("请基于这段资料继续分析：", "已插入资料分析模板。")}
+              >
                 <Plus size={20} />
               </button>
-              <button type="button" className="tool-chip">
+              <button
+                type="button"
+                className="tool-chip"
+                onClick={() => appendDraftTemplate("请帮我拆成待办清单：", "已插入任务助理模板。")}
+              >
                 <Sparkles size={17} />
                 <span>任务助理</span>
               </button>
-              <button type="button" className="tool-chip">
+              <button
+                type="button"
+                className="tool-chip"
+                onClick={() => appendDraftTemplate("请一步一步思考：", "已插入思考模板。")}
+              >
                 <Brain size={17} />
                 <span>思考</span>
               </button>
-              <button type="button" className="tool-chip">
+              <button
+                type="button"
+                className="tool-chip"
+                onClick={() => appendDraftTemplate("请给出可执行办事方案：", "已插入办事模板。")}
+              >
                 <Briefcase size={17} />
                 <span>办事</span>
               </button>
-              <button type="button" className="tool-chip">
+              <button
+                type="button"
+                className="tool-chip"
+                onClick={() => appendDraftTemplate("请帮我写一段 AI 生图提示词：", "已插入 AI 生图提示词模板。")}
+              >
                 <Image size={17} />
                 <span>AI 生图</span>
               </button>
             </div>
             <div className="composer-actions">
-              <button type="button" className="mic-button" aria-label="语音输入">
+              {isSending ? (
+                <button type="button" className="cancel-button" onClick={handleCancelSend} aria-label="取消生成">
+                  <X size={18} />
+                </button>
+              ) : null}
+              <button
+                type="button"
+                className="mic-button"
+                aria-label="语音输入"
+                onClick={() => appendDraftTemplate("请把下面这段语音转写内容整理成要点：", "已插入语音整理模板。")}
+              >
                 <Mic size={18} />
               </button>
               <button className="send-button" type="submit" disabled={!draft.trim() || isSending} aria-label="发送消息">
@@ -701,6 +880,10 @@ function formatTime(value: string) {
     hour: "2-digit",
     minute: "2-digit"
   }).format(new Date(value));
+}
+
+function isAbortError(error: unknown) {
+  return error instanceof DOMException && error.name === "AbortError";
 }
 
 function normalizePersistedState(value: unknown): PersistedState {

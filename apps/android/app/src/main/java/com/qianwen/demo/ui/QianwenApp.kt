@@ -1,6 +1,7 @@
 package com.qianwen.demo.ui
 
 import android.app.Application
+import android.content.Intent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -79,6 +80,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -174,8 +177,18 @@ private fun ConversationListScreen(state: QianwenUiState, viewModel: QianwenView
         SearchField(value = state.searchQuery, onValueChange = { viewModel.updateSearchQuery(it) })
 
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-            HomeNavItem(Icons.Filled.FolderOpen, "我的空间", Modifier.weight(1f))
-            HomeNavItem(Icons.Filled.AutoAwesome, "智能体", Modifier.weight(1f))
+            HomeNavItem(
+                Icons.Filled.FolderOpen,
+                "我的空间",
+                Modifier.weight(1f),
+                onClick = { viewModel.showNotice("我的空间会展示当前本地缓存和最近会话。") }
+            )
+            HomeNavItem(
+                Icons.Filled.AutoAwesome,
+                "智能体",
+                Modifier.weight(1f),
+                onClick = { viewModel.showNotice("智能体入口已响应，可在聊天页使用任务模板。") }
+            )
         }
 
         if (state.listStatus == ConversationListStatus.LOADING) {
@@ -183,6 +196,7 @@ private fun ConversationListScreen(state: QianwenUiState, viewModel: QianwenView
         }
         CacheText(state)
         ErrorText(state.error)
+        NoticeText(state.notice)
 
         Text("最近对话", color = Color(0xFFB1B7C1), fontSize = 13.sp)
         LazyColumn(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.weight(1f)) {
@@ -252,6 +266,7 @@ private fun ChatScreen(title: String, state: QianwenUiState, viewModel: QianwenV
 
         SendStateText(state)
         ErrorText(state.error)
+        NoticeText(state.notice)
 
         LazyColumn(
             modifier = Modifier.weight(1f).fillMaxWidth(),
@@ -261,7 +276,7 @@ private fun ChatScreen(title: String, state: QianwenUiState, viewModel: QianwenV
             if (messages.isEmpty()) {
                 item { MobileWelcome() }
             }
-            items(messages) { message -> MobileMessageBubble(message) }
+            items(messages) { message -> MobileMessageBubble(message, viewModel) }
         }
 
         MobileComposer(
@@ -272,6 +287,7 @@ private fun ChatScreen(title: String, state: QianwenUiState, viewModel: QianwenV
             onRetry = { viewModel.retryLastMessage() },
             onClear = { viewModel.clearMessages() },
             onStatus = { viewModel.navigate(NativeScreen.Status) },
+            onTemplate = { viewModel.applyComposerTemplate(it) },
             canSend = state.draft.isNotBlank() && !conversationId.isNullOrBlank()
         )
     }
@@ -291,6 +307,7 @@ private fun StatusScreen(state: QianwenUiState, viewModel: QianwenViewModel) {
         SimpleTopBar(title = "服务状态", onBack = { viewModel.navigate(NativeScreen.Conversations) })
         StatusStrip(state)
         ErrorText(state.error)
+        NoticeText(state.notice)
         Surface(color = ChipBackground, shape = RoundedCornerShape(18.dp)) {
             Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 InfoLine("status", state.health?.status ?: "unknown")
@@ -307,7 +324,7 @@ private fun StatusScreen(state: QianwenUiState, viewModel: QianwenViewModel) {
             color = TextSecondary,
             lineHeight = 20.sp
         )
-        Button(onClick = { viewModel.refreshHealth() }, shape = RoundedCornerShape(18.dp)) {
+        Button(onClick = { viewModel.refreshHealth(showFeedback = true) }, shape = RoundedCornerShape(18.dp)) {
             Text("重新检查")
         }
     }
@@ -325,6 +342,7 @@ private fun SettingsScreen(state: QianwenUiState, viewModel: QianwenViewModel) {
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         SimpleTopBar(title = "调试设置", onBack = { viewModel.navigate(NativeScreen.Conversations) })
+        NoticeText(state.notice)
         Surface(color = ChipBackground, shape = RoundedCornerShape(18.dp)) {
             Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 InfoLine("当前 API", state.apiBaseUrl)
@@ -397,8 +415,12 @@ private fun SearchField(value: String, onValueChange: (String) -> Unit) {
 }
 
 @Composable
-private fun HomeNavItem(icon: ImageVector, text: String, modifier: Modifier = Modifier) {
-    Surface(color = Color(0xFFF0F1F3), shape = RoundedCornerShape(14.dp), modifier = modifier.height(52.dp)) {
+private fun HomeNavItem(icon: ImageVector, text: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Surface(
+        color = Color(0xFFF0F1F3),
+        shape = RoundedCornerShape(14.dp),
+        modifier = modifier.height(52.dp).clickable(onClick = onClick)
+    ) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 14.dp)) {
             Icon(icon, contentDescription = null, tint = TextPrimary)
             Spacer(Modifier.width(8.dp))
@@ -492,7 +514,7 @@ private fun ConversationRow(
 }
 
 @Composable
-private fun MobileMessageBubble(message: ChatMessage) {
+private fun MobileMessageBubble(message: ChatMessage, viewModel: QianwenViewModel) {
     val isUser = message.role == "user"
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -520,7 +542,7 @@ private fun MobileMessageBubble(message: ChatMessage) {
                 )
             }
             if (!isUser) {
-                AssistantActionRow()
+                AssistantActionRow(message, viewModel)
             }
             if (message.status == "streaming" || message.status == "error" || message.error != null) {
                 Text(
@@ -535,21 +557,38 @@ private fun MobileMessageBubble(message: ChatMessage) {
 }
 
 @Composable
-private fun AssistantActionRow() {
-    Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(top = 12.dp, start = 4.dp)) {
-        SmallActionIcon(Icons.Filled.VolumeUp, "朗读")
-        SmallActionIcon(Icons.Filled.Share, "分享")
-        SmallActionIcon(Icons.Filled.ContentCopy, "复制")
-        SmallActionIcon(Icons.Filled.Edit, "编辑")
-        SmallActionIcon(Icons.Filled.Refresh, "重新生成")
-        SmallActionIcon(Icons.Filled.ThumbUp, "赞同")
-        SmallActionIcon(Icons.Filled.ThumbDown, "反对")
+private fun AssistantActionRow(message: ChatMessage, viewModel: QianwenViewModel) {
+    val clipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.padding(top = 12.dp, start = 4.dp).horizontalScroll(rememberScrollState())
+    ) {
+        SmallActionIcon(Icons.Filled.VolumeUp, "朗读") { viewModel.showNotice("朗读入口已响应。") }
+        SmallActionIcon(Icons.Filled.Share, "分享") {
+            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, message.content)
+            }
+            context.startActivity(Intent.createChooser(shareIntent, "分享回复"))
+            viewModel.showNotice("已打开系统分享。")
+        }
+        SmallActionIcon(Icons.Filled.ContentCopy, "复制") {
+            clipboardManager.setText(AnnotatedString(message.content))
+            viewModel.showNotice("回复已复制。")
+        }
+        SmallActionIcon(Icons.Filled.Edit, "编辑") { viewModel.useMessageAsDraft(message.content) }
+        SmallActionIcon(Icons.Filled.Refresh, "重新生成") { viewModel.regenerateFromMessage(message) }
+        SmallActionIcon(Icons.Filled.ThumbUp, "赞同") { viewModel.showNotice("已记录赞同反馈。") }
+        SmallActionIcon(Icons.Filled.ThumbDown, "反对") { viewModel.showNotice("已记录反对反馈。") }
     }
 }
 
 @Composable
-private fun SmallActionIcon(icon: ImageVector, description: String) {
-    Icon(icon, contentDescription = description, tint = TextSecondary, modifier = Modifier.size(21.dp))
+private fun SmallActionIcon(icon: ImageVector, description: String, onClick: () -> Unit) {
+    IconButton(onClick = onClick, modifier = Modifier.size(32.dp)) {
+        Icon(icon, contentDescription = description, tint = TextSecondary, modifier = Modifier.size(21.dp))
+    }
 }
 
 @Composable
@@ -574,6 +613,7 @@ private fun MobileComposer(
     onRetry: () -> Unit,
     onClear: () -> Unit,
     onStatus: () -> Unit,
+    onTemplate: (String) -> Unit,
     canSend: Boolean
 ) {
     Column(
@@ -588,10 +628,10 @@ private fun MobileComposer(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             modifier = Modifier.horizontalScroll(rememberScrollState())
         ) {
-            ToolChip(Icons.Filled.AutoAwesome, "思考")
-            ToolChip(Icons.Filled.Work, "办事")
-            ToolChip(Icons.Filled.Image, "AI生图")
-            ToolChip(Icons.Filled.CameraAlt, "拍题答疑")
+            ToolChip(Icons.Filled.AutoAwesome, "思考", onClick = { onTemplate("请一步一步思考：") })
+            ToolChip(Icons.Filled.Work, "办事", onClick = { onTemplate("请给出可执行办事方案：") })
+            ToolChip(Icons.Filled.Image, "AI生图", onClick = { onTemplate("请帮我写一段 AI 生图提示词：") })
+            ToolChip(Icons.Filled.CameraAlt, "拍题答疑", onClick = { onTemplate("请根据这道题逐步讲解：") })
             ToolChip(Icons.Filled.CloudQueue, "服务状态", onClick = onStatus)
             ToolChip(Icons.Filled.Delete, "清空", onClick = onClear)
             if (state.isStreaming) {
@@ -630,7 +670,7 @@ private fun MobileComposer(
                         inner()
                     }
                 )
-                IconButton(onClick = {}, enabled = !state.isStreaming) {
+                IconButton(onClick = { onTemplate("请根据这张图片或题目逐步讲解：") }, enabled = !state.isStreaming) {
                     Icon(Icons.Filled.CameraAlt, contentDescription = "拍照", tint = TextPrimary)
                 }
                 IconButton(onClick = onSend, enabled = canSend && !state.isStreaming) {
@@ -647,7 +687,7 @@ private fun MobileComposer(
 }
 
 @Composable
-private fun ToolChip(icon: ImageVector, text: String, onClick: () -> Unit = {}) {
+private fun ToolChip(icon: ImageVector, text: String, onClick: () -> Unit) {
     Surface(
         color = Color.White,
         shape = RoundedCornerShape(18.dp),
@@ -702,6 +742,20 @@ private fun ErrorText(error: String?) {
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color(0xFFFFF3F0), RoundedCornerShape(14.dp))
+                .padding(12.dp)
+        )
+    }
+}
+
+@Composable
+private fun NoticeText(notice: String?) {
+    if (!notice.isNullOrBlank()) {
+        Text(
+            notice,
+            color = Color(0xFF25527F),
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFFF2F8FF), RoundedCornerShape(14.dp))
                 .padding(12.dp)
         )
     }

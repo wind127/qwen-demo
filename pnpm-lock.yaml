@@ -29,13 +29,13 @@ importers:
       openai:
         specifier: ^5.16.0
         version: 5.23.2(ws@8.20.0)
+      tsx:
+        specifier: ^4.20.5
+        version: 4.21.0
     devDependencies:
       '@types/node':
         specifier: ^24.3.0
         version: 24.12.4
-      tsx:
-        specifier: ^4.20.5
-        version: 4.21.0
       vitest:
         specifier: ^3.2.4
         version: 3.2.4(@types/debug@4.1.13)(@types/node@24.12.4)(jsdom@26.1.0)(lightningcss@1.27.0)(terser@5.47.1)(tsx@4.21.0)

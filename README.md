@@ -1,6 +1,8 @@
-# 千问 App 多端 Demo
+# 千问 App Demo
 
-一个面向 Android 客户端面试展示的千问聊天 Demo。项目包含 **Android 原生主展示端**、Web 备用端、iOS 原生工程和 Fastify 服务端，统一使用同一套 HTTP/SSE API 合同。
+面向 Android 客户端面试展示的千问多端聊天 Demo。项目以 **Android 原生客户端** 为主展示端，同时提供 Web 备用闭环、iOS 原生工程和 Fastify 服务端，四端共享同一套 HTTP/SSE API 合同。
+
+> 定位：不是营销页，而是可本地复现、可现场演示、可解释 Android 客户端工程能力的 AI App Demo。
 
 ## 演示截图
 
@@ -8,13 +10,15 @@
 | --- | --- |
 | ![Android 千问聊天页](docs/screenshots/qwen-android-chat.png) | ![Web 千问聊天页](docs/screenshots/qwen-web-chat.png) |
 
-## 核心亮点
+## 一屏看懂
 
-- Android：Kotlin + Jetpack Compose + ViewModel + StateFlow，支持会话管理、SSE 流式回复、取消/重试、服务状态和 DataStore 本地恢复。
-- Server：Fastify + TypeScript，提供 `health`、会话、消息、普通聊天和 `chat/stream` 流式接口。
-- Web：Vite + React + TypeScript，保留完整聊天闭环、Markdown、代码块复制和本地历史。
-- iOS：SwiftUI 原生工程，接入同一 API 合同，包含会话、聊天、状态页和 SSE 解析基础。
-- Contract：`pnpm check:contract` 校验 DTO、路由和 `conversation/message/delta/done/error` SSE 事件集合，避免多端协议漂移。
+| 模块 | 技术栈 | 展示重点 |
+| --- | --- | --- |
+| Android | Kotlin、Jetpack Compose、ViewModel、StateFlow、OkHttp、DataStore | 主展示端：会话管理、SSE 流式回复、取消/重试、服务状态、本地恢复。 |
+| Web | React、Vite、TypeScript、Markdown | 备用闭环：会话管理、流式回复、代码块复制、localStorage。 |
+| Server | Fastify、TypeScript | `health`、conversation/message CRUD、`chat/stream`、真实千问或 mock fallback。 |
+| iOS | SwiftUI、URLSession、UserDefaults | 原生结构、同一 API 合同、SSE 解析基础。 |
+| Contract | shared DTO、api-client、contract check | 校验 DTO、端点和 `conversation/message/delta/done/error` 事件，避免多端协议漂移。 |
 
 ## 目录结构
 
@@ -33,7 +37,13 @@ docs/
   android-demo-guide.md
 ```
 
-## 快速开始
+## 环境要求
+
+- Node.js 22+，pnpm 10.15.1。
+- Android Studio 或 Android SDK 35，用于运行 `apps/android`。
+- Windows 可执行全部 Web/Server/Android 验证；iOS 构建需 macOS + Xcode。
+
+## 快速复现
 
 安装依赖：
 
@@ -44,11 +54,12 @@ pnpm install
 启动服务端：
 
 ```bash
-Copy-Item apps/server/.env.example apps/server/.env
 pnpm dev:server
 ```
 
-未配置真实 Key 时，服务端会自动使用 mock fallback，保证 Demo 可运行。健康检查：
+未配置真实 Key 时，服务端会自动使用 mock fallback，保证 Demo 可运行。需要真实千问时，复制 `apps/server/.env.example` 到本地 `apps/server/.env` 并填入 Key。
+
+健康检查：
 
 ```bash
 Invoke-RestMethod http://localhost:8787/health
@@ -71,8 +82,10 @@ pnpm dev:android
 ## 验证命令
 
 ```bash
+pnpm check:repo
 pnpm check:contract
 pnpm check:android
+pnpm check:ios
 pnpm test:android
 pnpm test
 pnpm build
@@ -105,6 +118,30 @@ WEB_ORIGIN=http://localhost:5173
 ```
 
 `DASHSCOPE_API_KEY` 和 `QWEN_API_KEY` 都为空时会进入 mock fallback。请不要提交真实 `.env` 或 API Key。
+
+## 本地部署
+
+Server：
+
+```bash
+pnpm install --frozen-lockfile
+pnpm start:server
+```
+
+Web：
+
+```bash
+pnpm --filter @qianwen/web build
+```
+
+Web 静态产物位于 `apps/web/dist`。部署 Web 时将 `VITE_API_BASE_URL` 指向已部署的 Server；Android 真机演示时将 `QWEN_API_BASE_URL` 改为电脑局域网 IP 或线上 Server 地址。
+
+## GitHub 发布自检
+
+- `git status --short --branch` 应保持干净，并与 `origin/main` 同步。
+- `pnpm check:repo` 检查已跟踪文件中是否混入 `.env`、`local.properties`、IDE 配置、构建产物、日志、压缩包、对话记录或疑似密钥。
+- `pnpm package:submission` 可生成默认排除本机文件和对话记录的提交包。
+- 提交前按“验证命令”逐项运行合同检查、Android 检查、测试和构建。
 
 ## 文档
 

@@ -1,7 +1,7 @@
 # Verification
 
 日期：2026-05-14  
-最近更新：2026-05-15  
+最近更新：2026-05-16
 执行者：Codex
 
 ## 结果
@@ -64,6 +64,30 @@
 - 最新 Android 与 Web 实测截图已归档到 `docs/screenshots/qwen-android-chat.png` 和 `docs/screenshots/qwen-web-chat.png`，并同步到 `docs/demo-showcase.md`。
 - `pnpm package:submission` 已通过，生成 `qwen-demo-submission-code-docs.zip`；包内抽查 `bad=0`，未包含对话记录、`.env`、`local.properties`、`.idea`、`node_modules`、`dist/build` 或 `.log`。
 
+## 2026-05-16 GitHub 发布审计与控件响应
+
+- Git 状态：开始审计时 `main...origin/main` 干净且同步；本轮完成后仅有本任务修改文件，`git ls-files -o --exclude-standard` 为空。`.env`、`local.properties`、IDE 目录、依赖目录、构建目录、提交包和对话记录均为忽略项，不会上传到 GitHub。
+- 隐私扫描：`origin/main` 高置信密钥/私钥模式扫描无命中；当前已跟踪文件高置信扫描无命中。普通关键字扫描仅命中文档中的 `token` 描述和合同检查脚本变量名。
+- 不必要文件：`origin/main` 已跟踪文件未命中 `node_modules`、`dist/build`、`.gradle`、`.idea`、`.env`、`local.properties`、`.zip`、`.apk`、日志或对话记录。
+- 可部署与可复现：`pnpm -v` 为 `10.15.1`，`node -v` 为 `v22.17.1`；README 已补充环境要求、发布自检和验证入口。
+- README：结构保持“项目说明 -> 截图 -> 亮点 -> 目录 -> 环境要求 -> 快速开始 -> 验证 -> 环境变量 -> 发布自检 -> 文档 -> 接口”，可读性和提交前指引已增强。
+- Web：补齐侧栏搜索/收起/打开、快捷新建、导航、更多操作、模型状态刷新、输入工具栏、取消生成、助手回复复制/朗读/分享/编辑/重新生成/评价的点击反馈；新增测试覆盖工具按钮不会误提交和回复操作响应。
+- Android：补齐首页导航反馈、服务状态刷新反馈、快捷工具草稿模板、拍照入口响应、助手回复复制/分享/编辑/重新生成/评价反馈；新增 ViewModel 单测覆盖快捷模板和重新生成。
+- 提交包：`pnpm package:submission` 通过，生成 `qwen-demo-submission-code-docs.zip`；包内 103 个条目，敏感/本机/构建产物规则命中 `bad=0`。
+- 本地服务：已后台启动 `pnpm dev:server` 与 `pnpm dev:web`；`http://127.0.0.1:8787/health` 返回 `status: ok`，`http://127.0.0.1:5173` 返回 HTTP 200。
+
+## 2026-05-16 验证命令
+
+- `pnpm check:contract`：通过。
+- `pnpm check:android`：通过。
+- `pnpm test:android`：通过，`:app:testDebugUnitTest` 成功。
+- `pnpm --filter @qianwen/web test`：通过，7 个 Web 测试通过。
+- `pnpm --filter @qianwen/web build`：通过。
+- `pnpm test`：通过，shared 2、api-client 2、server 10、web 7。
+- `pnpm build`：通过，shared、api-client、server TypeScript 检查与 web Vite build 成功。
+- `pnpm check:ios`：通过；Windows 环境仍无 `xcodebuild`。
+- `pnpm dev:android`：通过，`:app:assembleDebug` 成功。
+
 ## 本轮验证重点
 
 - Android 已作为主展示端补强 Compose UI、ViewModel + StateFlow 状态模型、OkHttp SSE、取消/重试和 DataStore 本地恢复。
@@ -79,3 +103,17 @@
 - Smoke 首次尝试使用 `tsx -e` 顶层 `await`，因 CJS 输出限制失败；改为 async IIFE 后同等 health + stream smoke 通过。
 - 未提交真实 API Key、`.env`、`local.properties`、`.idea` 或 build 产物。
 - 当前服务端处于真实 `qwen` 模式，现场演示依赖网络和额度；如遇外部服务波动，可临时移除本机真实 Key 或使用 mock fallback 作为备用演示路径。
+
+## 2026-05-17 GitHub 交付检查与控件响应优化
+
+- Git 状态：`main` 与 `origin/main` 均指向 `9a2beb0`；本轮修改尚未提交推送，最终发布前需要提交并 push。
+- 远端检查：`git ls-remote origin refs/heads/main` 返回 `9a2beb08ae47576da3bb60a7cc99fe21c4e8615e`，远端可访问。
+- 远端文件卫生：`git ls-tree -r --name-only origin/main` 共 82 个 tracked 文件；未发现 `.env`、`local.properties`、`.idea`、`node_modules`、`dist/build`、压缩包、日志、APK/AAB 或对话记录。
+- 远端隐私检查：对 `origin/main` 执行密钥模式扫描，未发现真实 `DASHSCOPE_API_KEY`、`QWEN_API_KEY`、`sk-*` token 或私钥内容；文档中的空环境变量示例属于预期内容。
+- 新增 `pnpm check:repo`，用于检查已跟踪文件中是否混入隐私信息、本机配置或不必要产物；本地 tracked 文件和 `origin/main` 均通过。
+- GitHub README 已优化为简洁首页结构，包含项目定位、Android/Web 演示图片、一屏看懂、快速复现、本地部署、发布自检和文档入口。
+- Server 部署入口已补充 `pnpm start:server`；修复 `.env` 覆盖外部 `PORT` 的问题，部署平台注入的环境变量优先级最高。
+- `pnpm start:server` 已用临时端口 `8899` 做 health smoke，返回 `status: ok` 后清理进程。
+- Web 控件响应：搜索入口、侧边栏收起/展开、我的空间、智能体、更多操作、模型状态刷新、工具栏模板、语音模板、取消生成、助手朗读/分享/复制/编辑/重新生成/赞同/反对均已绑定反馈或实际行为。
+- Android 控件响应：我的空间、智能体、服务状态刷新、工具胶囊、拍照入口、助手复制/分享/编辑/重新生成/赞同/反对均已绑定反馈或实际行为，并通过 ViewModel 单测覆盖模板插入与重新生成。
+- 回归验证通过：`pnpm check:repo`、`pnpm check:contract`、`pnpm check:android`、`pnpm check:ios`、`pnpm test:android`、`pnpm --filter @qianwen/web test`、`pnpm --filter @qianwen/web build`、`pnpm --filter @qianwen/server test`、`pnpm --filter @qianwen/server build`、`pnpm test`、`pnpm build`、`pnpm dev:android`。

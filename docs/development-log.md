@@ -143,3 +143,21 @@
 - 原因：二面提交材料最容易出问题的是本机配置、真实 Key、构建产物、旧截图和协议漂移；这些风险可以通过脚本和文档收口。
 - 影响：后续只需执行 `pnpm package:submission` 即可得到干净的代码文档包；合同漂移能在本地检查阶段更早暴露。
 - 验证结果：`pnpm check:contract` 已通过，输出 10 个 DTO、9 个端点和 5 类 SSE 事件检查结果。
+
+## 2026-05-17 11:35 - GitHub 发布检查与交互补强
+
+- 阶段：仓库发布检查、README 首页优化、Web/Android 控件响应补强。
+- 操作：检查 `git status`、`origin/main`、远端 tracked 文件、隐私模式和不必要文件；新增 `pnpm check:repo`；优化 README 为 GitHub 首页；补充 `pnpm start:server` 部署入口；修复 Server `.env` 覆盖外部 `PORT` 的问题；继续完善 Web/Android 可点击控件的反馈和行为。
+- 决策：不执行 `git push`，因为推送远端属于需要明确确认的操作；本轮只完成本地修改、远端审计和可验证产物。
+- 原因：GitHub 仓库除了代码功能，还需要确认无隐私信息、无本机产物、可部署可复现，并让首页能快速说明项目价值。
+- 影响：仓库具备可复用的发布前自检命令；README 更适合作为 GitHub 主页；Web/Android 假按钮减少，现场点击更有反馈。
+- 验证结果：本地 tracked 文件与 `origin/main` 均通过 `check:repo`；`pnpm start:server` 临时端口 health smoke 通过；Web 7 个测试、Android JVM 单测、全仓库 test/build、contract、Android/iOS 检查与 Android assemble 均通过。
+
+## 2026-05-16 16:40 - GitHub 发布审计与控件响应增强
+
+- 阶段：发布面审计、代码实现与本地验证。
+- 操作：确认 `main` 与 `origin/main` 同步后，对远端已跟踪文件执行高置信密钥/私钥/本机配置/构建产物扫描；补强 README 环境要求与 GitHub 发布自检；Web 补齐侧栏、模型状态、输入工具栏和助手回复操作按钮反馈；Android 补齐工具芯片、回复操作图标、服务状态刷新和提示状态。
+- 决策：不改变 Server/Web/Android/iOS 的 API 路由、DTO 或 SSE 事件集合，只在客户端 UI 和 ViewModel 层增强可点击控件的可见响应。
+- 原因：GitHub 仓库需要保持可部署、可复现、无隐私泄漏，同时演示端不能出现“看起来能点但没有反馈”的控件。
+- 影响：Web 工具按钮不再误触发表单提交，回复操作支持复制、朗读/分享反馈、编辑草稿、重新生成和评价反馈；Android 回复操作进入真实点击处理，快捷工具会更新草稿或提示。
+- 验证结果：`pnpm check:contract`、`pnpm check:android`、`pnpm test:android`、`pnpm --filter @qianwen/web test`、`pnpm --filter @qianwen/web build`、`pnpm test`、`pnpm build`、`pnpm check:ios`、`pnpm dev:android`、`pnpm package:submission` 均通过；提交包 103 个条目，敏感/本机/构建产物命中数为 0。
