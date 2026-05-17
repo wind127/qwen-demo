@@ -2,7 +2,7 @@
 
 面向 Android 客户端面试展示的千问多端聊天 Demo。项目以 **Android 原生客户端** 为主展示端，同时提供 Web 备用闭环、iOS 原生工程和 Fastify 服务端，四端共享同一套 HTTP/SSE API 合同。
 
-> 定位：不是营销页，而是可本地复现、可现场演示、可解释 Android 客户端工程能力的 AI App Demo。
+> 定位：可本地复现、可现场演示、可解释 Android 客户端工程能力的 AI App Demo。
 
 ## 演示截图
 
